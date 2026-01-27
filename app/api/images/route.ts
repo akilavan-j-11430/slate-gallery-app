@@ -5,42 +5,52 @@ import requestHandler from "@/server/handlers/RequestHandler";
 import { getCatalystApp } from "@/server/utils/GetCatalystApp";
 
 async function getPagedImages(request: NextRequest) {
-    const searchParams = request.nextUrl.searchParams;
+  const searchParams = request.nextUrl.searchParams;
 
-    const page = Number(searchParams.get("page"));
-    const perPage = Number(searchParams.get("perPage"));
+  const page = Number(searchParams.get("page"));
+  const perPage = Number(searchParams.get("perPage"));
 
-    if (!page) throw new HttpError(400, "page cannot be empty.");
-    if (!perPage) throw new HttpError(400, "perPage cannot be empty.");
+  if (!page) throw new HttpError(400, "page cannot be empty.");
+  if (!perPage) throw new HttpError(400, "perPage cannot be empty.");
 
-    if (isNaN(page) || page <= 0) {
-      throw new HttpError(400, "page must be a positive integer.");
-    }
+  if (isNaN(page) || page <= 0) {
+    throw new HttpError(400, "page must be a positive integer.");
+  }
 
-    if (isNaN(perPage) || perPage <= 0) {
-      throw new HttpError(400, "perPage must be a positive integer.");
-    }
+  if (isNaN(perPage) || perPage <= 0) {
+    throw new HttpError(400, "perPage must be a positive integer.");
+  }
 
-    if (perPage > 100) {
-      throw new HttpError(400, "perPage cannot be greater than 100.");
-    }
+  if (perPage > 100) {
+    throw new HttpError(400, "perPage cannot be greater than 100.");
+  }
 
-    const catalystApp = getCatalystApp(request);
+  const catalystApp = getCatalystApp(request);
 
-    const imageService = new ImageService(catalystApp);
+  const imageService = new ImageService(catalystApp);
 
-    const pagedResult = await imageService.getPagedImages({
-      page,
-      perPage
-    });
+  const pagedResult = await imageService.getPagedImages({
+    page,
+    perPage
+  });
 
-   return NextResponse.json({
+  return NextResponse.json(
+    {
       status: "success",
       data: pagedResult.data,
       pageInfo: pagedResult.pageInfo
-    });
-  
+    },
+    {
+      headers: {
+        "Cache-Control":
+          "no-store, no-cache, must-revalidate, proxy-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+        "Surrogate-Control": "no-store"
+      }
+    }
+  );
 }
 
 export const revalidate = 0;
-export const GET= requestHandler(getPagedImages);
+export const GET = requestHandler(getPagedImages);

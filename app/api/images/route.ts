@@ -52,5 +52,4 @@ async function getPagedImages(request: NextRequest) {
   );
 }
 
-export const revalidate = 0;
 export const GET = requestHandler(getPagedImages);
